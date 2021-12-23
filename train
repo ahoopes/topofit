@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+
+import os
+import argparse
+import topofit
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-o', '--outdir')
+parser.add_argument('--load-epoch', type=int)
+parser.add_argument('-e', '--epochs', type=int, default=2000)
+parser.add_argument('--lr', type=float, default=1e-4)
+parser.add_argument('--loss', default='dist-1000')
+parser.add_argument('--reg', type=float, default=1.0)
+parser.add_argument('--ico', type=int, default=7)
+parser.add_argument('--start-ico', type=int, default=1)
+parser.add_argument('--val-dir', default='validate-real')
+parser.add_argument('--block-type', default='unet')
+parser.add_argument('-v', '--verbose', action='store_true')
+args = parser.parse_args()
+
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+
+net = topofit.SurfNet(args.outdir,
+                      loss=args.loss,
+                      validation_dir=args.val_dir,
+                      block_type=args.block_type,
+                      target=args.ico,
+                      start_ico=args.start_ico,
+                      regularize=args.reg)
+net.build_model()
+net.verbose = args.verbose
+
+if args.load_epoch is not None:
+    net.load(args.load_epoch)
+
+net.train(epochs=args.epochs, lr=args.lr)
