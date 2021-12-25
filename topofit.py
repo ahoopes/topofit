@@ -437,7 +437,9 @@ class SurfNet:
             self.model.summary(line_length=150)
 
     def build_graph_block(self, inputs, p, prefix):
-
+        """
+        Convolutional block operated on the mesh graph.
+        """
         y = inputs
         curr_ico = p.ico
         skip_connections = []
@@ -465,6 +467,9 @@ class SurfNet:
         return y
 
     def graph_conv(self, inputs, channels, adjacency, name=None, initializer=None):
+        """
+        Convolutional on the mesh graph.
+        """
         if self.use_feature_steered:
             y = tfg_graph_conv.FeatureSteeredConvolutionKerasLayer(
                     num_weight_matrices=self.num_weight_matrices,

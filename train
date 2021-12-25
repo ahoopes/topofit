@@ -14,7 +14,6 @@ parser.add_argument('--reg', type=float, default=1.0)
 parser.add_argument('--ico', type=int, default=7)
 parser.add_argument('--start-ico', type=int, default=1)
 parser.add_argument('--val-dir', default='validate-real')
-parser.add_argument('--block-type', default='unet')
 parser.add_argument('-v', '--verbose', action='store_true')
 args = parser.parse_args()
 
@@ -23,7 +22,6 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 net = topofit.SurfNet(args.outdir,
                       loss=args.loss,
                       validation_dir=args.val_dir,
-                      block_type=args.block_type,
                       target=args.ico,
                       start_ico=args.start_ico,
                       regularize=args.reg)
