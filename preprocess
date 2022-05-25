@@ -24,7 +24,8 @@ args = parser.parse_args()
 if shutil.which('mri_surf2surf') is None:
     sf.system.fatal('cannot find mri_surf2surf in system path, has freesurfer been sourced?')
 
-if os.environ.get('FREESURFER_HOME') is None:
+fshome = os.environ.get('FREESURFER_HOME')
+if fshome is None:
     sf.system.fatal('FREESURFER_HOME is not set in the env, has freesurfer been sourced?')
 
 # set SUBJECTS_DIR manually based on path to input subject
@@ -38,6 +39,14 @@ if not os.path.exists(os.path.join(subjects_dir, 'fsaverage')):
         f'fsaverage subject does not exist in the base directory `{subjects_dir}`, '
          'so you must link it by running:\n\n'
         f'ln -s $FREESURFER_HOME/subjects/fsaverage {subjects_dir}/fsaverage\n')
+
+# compute talairach.xfm.lta if it doesn't exist
+if not os.path.isfile(f'{args.subj}/mri/transforms/talairach.xfm.lta'):
+    cmd = f'lta_convert --src {args.subj}/mri/orig.mgz ' \
+          f'--trg {fshome}/average/mni305.cor.mgz --inxfm {args.subj}/mri/transforms/talairach.xfm ' \
+          f'--outlta {args.subj}/mri/transforms/talairach.xfm.lta --subject fsaverage --ltavox2vox'
+    if sf.system.run(cmd) != 0:
+        sf.system.fatal('could not run lta_convert command')
 
 # cycle through hemispheres
 for i, hemi in enumerate(('lh', 'rh')):
