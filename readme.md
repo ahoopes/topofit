@@ -3,7 +3,7 @@
 TopoFit is a learning-based tool that rapidly fits a topologically-correct surface to cerebral cortex in brain MRI. This code base implements the model described in the following [paper](https://openreview.net/forum?id=-JiHeZNDY3a):
 
 > TopoFit: Rapid Reconstruction of Topologically-Correct Cortical Surfaces<br>
-> Andrew Hoopes, Juan Eugenio Iglesias, Bruce Fischl, Douglas Greve, Adrian Dalca<br>
+> Andrew Hoopes, Juan Eugenio Iglesias, Bruce Fischl, Douglas Greve, Adrian V. Dalca<br>
 > Medical Imaging with Deep Learning. 2022.<br>
 
 To evaluate a pretrained TopoFit model, you can [download the development version](https://surfer.nmr.mgh.harvard.edu/fswiki/DownloadAndInstall) of FreeSurfer and run the `mris_estimate_wm` command line tool. However, to develop and train a TopoFit model using custom data, clone this repository and follow the instructs below.
