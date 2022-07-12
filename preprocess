@@ -13,7 +13,6 @@ import os
 import argparse
 import shutil
 import surfa as sf
-import topofit
 
 
 parser = argparse.ArgumentParser()
