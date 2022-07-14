@@ -26,6 +26,7 @@ parser.add_argument('--reg-weight', type=float, default=0.5, help='mesh regulari
 parser.add_argument('--load-epoch', type=int, help='epoch number of model checkpoint to load from outdir')
 parser.add_argument('--gpu', default='0', help='GPU device ID')
 parser.add_argument('--skip-low-res', action='store_true', help='skip the initial low-resolution training')
+parser.add_argument('--vol', help='Input volume (norm.mgz)',default='norm.mgz')
 args = parser.parse_args()
 
 # sanity check on inputs
@@ -36,6 +37,8 @@ if args.hemi not in ('lh', 'rh'):
 # necessary for speed gains
 torch.backends.cudnn.benchmark = True
 torch.backends.cudnn.deterministic = True
+
+print(f'Input volume is {args.vol}');
 
 # configure GPU device
 os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
@@ -178,7 +181,7 @@ for epoch in range(initial_epoch, epochs):
         model.train(mode=False)
         with torch.no_grad():
             for subj in validation_subjs:
-                data = topofit.io.load_subject_data(subj, args.hemi, ground_truth=True, low_res=model.low_res_training)
+                data = topofit.io.load_subject_data(subj, args.hemi, ground_truth=True, low_res=model.low_res_training, vol=args.vol)
                 input_image = data['input_image'].to(device)
                 input_vertices = data['input_vertices'].to(device)
                 true_white = data['true_vertices'].to(device)

@@ -11,14 +11,14 @@ from . import utils
 target_image_shape = (96, 144, 192)
 
 
-def load_subject_data(subj, hemi, ground_truth=False, low_res=False): 
+def load_subject_data(subj, hemi, ground_truth=False, low_res=False, vol="norm.mgz"): 
     """
     Load a FreeSurfer subject image and surface. Use the talairach alignment
     to place the initial template surface and crop the image.
     """
 
     # load bias corrected image and talairach affine
-    image = sf.load_volume(f'{subj}/mri/norm.mgz')
+    image = sf.load_volume(f'{subj}/mri/{vol}')
     affine = sf.load_affine(f'{subj}/mri/transforms/talairach.xfm.lta').inv().convert(space='vox', target=image)
 
     # load the initial template surface and align to subject
