@@ -27,6 +27,7 @@ parser.add_argument('--load-epoch', type=int, help='epoch number of model checkp
 parser.add_argument('--gpu', default='0', help='GPU device ID')
 parser.add_argument('--skip-low-res', action='store_true', help='skip the initial low-resolution training')
 parser.add_argument('--vol', help='Input volume (norm.mgz)',default='norm.mgz')
+parser.add_argument('--xhemi', action='store_true', help='Xhemi')
 args = parser.parse_args()
 
 # sanity check on inputs
@@ -39,6 +40,7 @@ torch.backends.cudnn.benchmark = True
 torch.backends.cudnn.deterministic = True
 
 print(f'Input volume is {args.vol}');
+print(f'Xhemi {args.xhemi}');
 
 # configure GPU device
 os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
@@ -106,7 +108,7 @@ best_decay_metric = 1e10
 best_decay_last_epoch = initial_epoch
 
 # configure dataset sampler
-data_iterator = iter(topofit.io.get_data_loader(args.hemi, training_subjs, model.low_res_training))
+data_iterator = iter(topofit.io.get_data_loader(args.hemi, training_subjs, model.low_res_training, 8,args.vol, args.xhemi))
 
 # start training loop
 for epoch in range(initial_epoch, epochs):
@@ -181,7 +183,7 @@ for epoch in range(initial_epoch, epochs):
         model.train(mode=False)
         with torch.no_grad():
             for subj in validation_subjs:
-                data = topofit.io.load_subject_data(subj, args.hemi, ground_truth=True, low_res=model.low_res_training, vol=args.vol)
+                data = topofit.io.load_subject_data(subj, args.hemi, ground_truth=True, low_res=model.low_res_training, vol=args.vol, xhemi=args.xhemi)
                 input_image = data['input_image'].to(device)
                 input_vertices = data['input_vertices'].to(device)
                 true_white = data['true_vertices'].to(device)
@@ -237,7 +239,7 @@ for epoch in range(initial_epoch, epochs):
         for group in optimizer.param_groups:
             group['lr'] = init_learning_rate
         model.low_res_training = False
-        data_iterator = iter(topofit.io.get_data_loader(args.hemi, training_subjs, model.low_res_training))
+        data_iterator = iter(topofit.io.get_data_loader(args.hemi, training_subjs, model.low_res_training,args.xhemi))
     elif learning_rate < min_lr:
         print('Surpassed minimum learning rate - stopping training')
         break

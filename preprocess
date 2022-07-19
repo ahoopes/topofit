@@ -13,10 +13,12 @@ import os
 import argparse
 import shutil
 import surfa as sf
+import topofit
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument('subj', help='full path to recon-all FreeSurfer subject')
+parser.add_argument('--xhemi', action='store_true', help='Xhemi')
 args = parser.parse_args()
 
 # make sure FS has been sourced in the env
@@ -31,6 +33,7 @@ if fshome is None:
 subjects_dir = os.path.dirname(args.subj)
 os.environ['SUBJECTS_DIR'] = subjects_dir
 basename = os.path.basename(args.subj)
+print(subjects_dir)
 
 # make sure fsaverage is accessible from the SUBJECTS_DIR
 if not os.path.exists(os.path.join(subjects_dir, 'fsaverage')):
@@ -48,13 +51,20 @@ if not os.path.isfile(f'{args.subj}/mri/transforms/talairach.xfm.lta'):
         sf.system.fatal('could not run lta_convert command')
 
 # cycle through hemispheres
-for i, hemi in enumerate(('lh', 'rh')):
-
-    # run the mesh resampling
+if not args.xhemi: 
+    for i, hemi in enumerate('lh', 'rh'):
+        cmd = f'mri_surf2surf --mapmethod nnf --s {basename} --hemi {hemi} --sval-xyz white ' \
+              f'--trgsubject fsaverage --tval {args.subj}/surf/{hemi}.white.ico.surf ' \
+              f'--tval-xyz {args.subj}/mri/norm.mgz'
+        if sf.system.run(cmd) != 0:
+            sf.system.fatal('could not run mri_surf2surf command')
+else:
+    hemi = 'lh';
     cmd = f'mri_surf2surf --mapmethod nnf --s {basename} --hemi {hemi} --sval-xyz white ' \
-          f'--trgsubject fsaverage --tval {args.subj}/surf/{hemi}.white.ico.surf ' \
-          f'--tval-xyz {args.subj}/mri/norm.mgz'
+          f'--trgsubject fsaverage_sym --tval {args.subj}/surf/{hemi}.white.ico.xhemi.surf ' \
+          f'--tval-xyz {args.subj}/mri/norm.mgz --srcsurfreg fsaverage_sym.sphere.reg --trgsurfreg sphere.reg'
     if sf.system.run(cmd) != 0:
         sf.system.fatal('could not run mri_surf2surf command')
+
 
 print('\nTopoFit preprocessing complete!')

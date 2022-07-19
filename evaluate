@@ -25,9 +25,11 @@ parser.add_argument('--suffix', default='topofit', help='custom ')
 parser.add_argument('--gpu', default='0', help='GPU device ID (default is 0')
 parser.add_argument('--cpu', action='store_true', help='use CPU instead of GPU')
 parser.add_argument('--vol', help='Input volume (norm.mgz)',default='norm.mgz')
+parser.add_argument('--xhemi', action='store_true', help='Xhemi')
 args = parser.parse_args()
 
 print(f'Input volume is {args.vol}');
+print(f'Xhemi {args.xhemi}');
 
 # sanity check on inputs
 if args.hemi not in ('lh', 'rh'):
@@ -61,7 +63,7 @@ model.train(mode=False)
 for subj in args.subjs:
     
     # load subject data
-    data = topofit.io.load_subject_data(subj, args.hemi, vol=args.vol)
+    data = topofit.io.load_subject_data(subj, args.hemi, vol=args.vol, xhemi=args.xhemi)
 
     # predict surface
     with torch.no_grad():

@@ -11,7 +11,7 @@ from . import utils
 target_image_shape = (96, 144, 192)
 
 
-def load_subject_data(subj, hemi, ground_truth=False, low_res=False, vol="norm.mgz"): 
+def load_subject_data(subj, hemi, ground_truth=False, low_res=False, vol="norm.mgz", xhemi=False): 
     """
     Load a FreeSurfer subject image and surface. Use the talairach alignment
     to place the initial template surface and crop the image.
@@ -47,7 +47,10 @@ def load_subject_data(subj, hemi, ground_truth=False, low_res=False, vol="norm.m
 
     # ground-truths might be needed (for training)
     if ground_truth:
-        true_vertices = sf.load_mesh(f'{subj}/surf/{hemi}.white.ico.surf')
+        if not xhemi:
+            true_vertices = sf.load_mesh(f'{subj}/surf/{hemi}.white.ico.surf')
+        else:
+            true_vertices = sf.load_mesh(f'{subj}/surf/{hemi}.white.ico.xhemi.surf')
         true_vertices = true_vertices.convert(space='vox', geometry=cropped_image).vertices.astype(np.float32)
         if low_res:
             true_vertices = true_vertices[ico.get_mapping(7, 6)]
@@ -84,11 +87,13 @@ class InfiniteSampler(torch.utils.data.IterableDataset):
     """
     Iterable torch dataset that infinitively samples training subjects.
     """
-    def __init__(self, hemi, training_subjs, low_res):
+    def __init__(self, hemi, training_subjs, low_res, vol='norm.mgz', xhemi=False):
         super().__init__()
         self.hemi = hemi
         self.training_subjs = training_subjs
         self.low_res = low_res
+        self.vol = vol;
+        self.xhemi = xhemi;
 
     def __iter__(self):
         yield from itertools.islice(self.infinite(), 0, None, 1)
@@ -98,7 +103,7 @@ class InfiniteSampler(torch.utils.data.IterableDataset):
             idx = np.random.randint(len(self.training_subjs))
             subj = self.training_subjs[idx]
             try:
-                data = load_subject_data(subj, self.hemi, ground_truth=True, low_res=self.low_res)
+                data = load_subject_data(subj, self.hemi, ground_truth=True, low_res=self.low_res, vol=self.vol, xhemi=self.xhemi)
                 data = {k: v for k, v in data.items() if k in ('input_image', 'input_vertices', 'true_vertices')}
             except RuntimeError:
                 continue
@@ -116,9 +121,9 @@ class Collator:
         return self
 
 
-def get_data_loader(hemi, training_subjs, low_res=False, prefetch_factor=8):
+def get_data_loader(hemi, training_subjs, low_res=False, prefetch_factor=8, vol='norm.mgz',xhemi=False):
     collate_fn = lambda batch : Collator(batch)
-    sampler = InfiniteSampler(hemi, training_subjs, low_res)
+    sampler = InfiniteSampler(hemi, training_subjs, low_res, vol, xhemi)
     data_loader = torch.utils.data.DataLoader(sampler, batch_size=1, num_workers=1,
         prefetch_factor=prefetch_factor, collate_fn=collate_fn, pin_memory=True)
     return data_loader
