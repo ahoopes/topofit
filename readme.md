@@ -46,3 +46,7 @@ Once a model has been trained, it can be evaluated on any set of recon-all subje
 ```
 
 This will save the predicted FreeSurfer-formatted surface as `lh.white.topofit` in the subject's `surf` subdirectory.
+
+### Surface Mesh Dataset
+
+We provide a public dataset of white matter surface meshes that correspond to 414 subjects in the processed [neurite oasis MRI dataset](https://github.com/adalca/medical-datasets/blob/master/neurite-oasis.md) (the T1 image data can be downloaded through this link). The corresponding surface data is available for download [here](https://surfer.nmr.mgh.harvard.edu/ftp/data/neurite/data/neurite-oasis-wm-surfaces.v1.0.tar).
